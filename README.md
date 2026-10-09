@@ -6,10 +6,11 @@ Engineering, WS 2026/27.
 
 ## Architektur
 
-Dieses Backend kennt **keine TMDB-Anbindung**. Externe Daten werden
-ausschließlich vom BFF ([cinerate-bff](../cinerate-bff)) geholt und mit den
-Daten dieses Backends kombiniert. Nur das BFF darf dieses Backend aufrufen
-(CORS beschränkt auf `BFF_URL`), nicht die SPA direkt.
+Dieses Backend ist die einzige Komponente mit Datenbankzugriff. Es ruft bei
+Bedarf die **TMDB-API** auf (`lib/tmdbClient.js`), speichert die geholten Filme
+in der Datenbank und antwortet. Das BFF ([cinerate-bff](../cinerate-bff)) reicht
+Anfragen nur durch. Nur das BFF darf dieses Backend aufrufen (CORS beschränkt auf
+`BFF_URL`), nicht die SPA direkt.
 
 Das Datenbankschema selbst liegt in einem eigenen Repository:
 [cinerate-db](../cinerate-db).
@@ -18,7 +19,7 @@ Das Datenbankschema selbst liegt in einem eigenen Repository:
 
 ```
 npm install
-cp .env.example .env   # DATABASE_URL eintragen (siehe cinerate-db)
+cp .env.example .env   # DATABASE_URL und TMDB_API_KEY eintragen
 npm start
 ```
 
@@ -63,7 +64,7 @@ Testabdeckung messen: `node --test --experimental-test-coverage`
 ```
 heroku create cinerate-backend
 heroku addons:create heroku-postgresql:essential-0
-heroku config:set BFF_URL=https://cinerate-bff.herokuapp.com
+heroku config:set BFF_URL=https://cinerate-bff.herokuapp.com TMDB_API_KEY=...
 git push heroku main
 ```
 
@@ -72,4 +73,4 @@ Das Schema wird separat über `cinerate-db` initialisiert (gegen dieselbe
 
 ## Tech-Stack
 
-Node.js, Express, PostgreSQL (über `pg`)
+Node.js, Express, PostgreSQL (über `pg`), TMDB-API
