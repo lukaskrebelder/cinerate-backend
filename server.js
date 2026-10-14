@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Backend: REST-API gegen die Datenbank (Nutzer, Film, Bewertung).
-// Ruft bei Bedarf die TMDB-API auf (lib/tmdbClient.js) und speichert die Filme.
+// Ruft bei Bedarf die TMDB-API auf (integrations/tmdbClient.js) und speichert die Filme.
 // CORS: nur das BFF darf dieses Backend aufrufen, nicht die SPA direkt.
 app.use(
   cors({
