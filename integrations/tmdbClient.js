@@ -1,13 +1,22 @@
 // Client für die TMDB-API (Fremdservice). Enthält nur die Aufrufe an TMDB,
-// keine Fachregeln. Fetch und Timeout lassen sich in Tests austauschen.
+// keine Fachregeln. Fetch, Timeout, Wiederholungen und Wartezeit lassen sich in Tests austauschen.
 const { AppError } = require("../lib/appError");
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
+const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Nur vorübergehende Fehler lohnen eine Wiederholung: 429 (zu viele Anfragen) und 5xx.
+// Andere 4xx (falscher Schlüssel, unbekannte ID) ändern sich beim zweiten Versuch nicht.
+const isRetryableStatus = (status) => status === 429 || status >= 500;
 
 function createTmdbClient({
   apiKey = process.env.TMDB_API_KEY,
   fetchFn = fetch,
   timeoutMs = 5000,
+  retries = 2,
+  retryDelayMs = 200,
+  sleepFn = defaultSleep,
 } = {}) {
   async function request(path, params = {}) {
     const url = new URL(TMDB_BASE_URL + path);
@@ -19,18 +28,26 @@ function createTmdbClient({
       }
     }
 
-    try {
-      // Nach timeoutMs bricht der Aufruf ab, damit eine hängende TMDB-Antwort nicht ewig wartet
-      const response = await fetchFn(url, { signal: AbortSignal.timeout(timeoutMs) });
-      if (!response.ok) {
-        throw new Error(`TMDB-Anfrage fehlgeschlagen: ${response.status}`);
+    let lastError;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      // Pause vor jeder Wiederholung, bei jedem Versuch doppelt so lang (200 ms, 400 ms, ...)
+      if (attempt > 0) await sleepFn(retryDelayMs * 2 ** (attempt - 1));
+
+      try {
+        // Nach timeoutMs bricht der Aufruf ab, damit eine hängende TMDB-Antwort nicht ewig wartet
+        const response = await fetchFn(url, { signal: AbortSignal.timeout(timeoutMs) });
+        if (response.ok) return await response.json();
+
+        lastError = new Error(`TMDB-Anfrage fehlgeschlagen: ${response.status}`);
+        if (!isRetryableStatus(response.status)) break; // z. B. 404: nicht erneut versuchen
+      } catch (err) {
+        lastError = err; // Netzwerkfehler oder Timeout: erneut versuchen
       }
-      return await response.json();
-    } catch (err) {
-      // Nur die Meldung loggen, nie die URL (sie enthält den API-Schlüssel)
-      console.error(err.message);
-      throw new AppError(503, "Search is currently unavailable.");
     }
+
+    // Nur die Meldung loggen, nie die URL (sie enthält den API-Schlüssel)
+    console.error(lastError.message);
+    throw new AppError(503, "Search is currently unavailable.");
   }
 
   return {
