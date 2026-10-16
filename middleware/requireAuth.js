@@ -1,34 +1,32 @@
 // Prüft den Header "Authorization: Bearer <token>" bei geschützten Routen.
-// Gültig ist ein Token, dessen Hash in der Tabelle Sitzung steht und nicht abgelaufen ist.
-const pool = require("../db/connection");
-const { hashToken } = require("../lib/tokens");
+// Die eigentliche Prüfung (Hash, Ablauf, Rolle) macht der authService.
+const { AppError, handleError } = require("../lib/appError");
+const { createSessionRepository } = require("../db/sessionRepository");
+const { createAuthService } = require("../services/authService");
 
-async function requireAuth(req, res, next) {
-  const header = req.headers.authorization || "";
-  const [scheme, token] = header.split(" ");
+function createRequireAuth(authService) {
+  return async function requireAuth(req, res, next) {
+    const header = req.headers.authorization || "";
+    const [scheme, token] = header.split(" ");
 
-  if (scheme !== "Bearer" || !token) {
-    return res.status(401).json({ message: "Invalid token." });
-  }
+    try {
+      if (scheme !== "Bearer" || !token) {
+        throw new AppError(401, "Invalid token.");
+      }
+      const user = await authService.authenticate(token);
 
-  try {
-    const result = await pool.query(
-      "SELECT id, nutzer_id FROM Sitzung WHERE token_hash = $1 AND laeuft_ab_am > NOW()",
-      [hashToken(token)]
-    );
-    const session = result.rows[0];
-    if (!session) {
-      return res.status(401).json({ message: "Invalid token." });
+      // Nachfolgende Routen wissen damit, wer angemeldet ist und welche Rolle er hat
+      req.user = { id: user.id, rolle: user.rolle };
+      req.sessionId = user.sessionId;
+      next();
+    } catch (err) {
+      handleError(err, res);
     }
-
-    // Nachfolgende Routen wissen damit, wer angemeldet ist
-    req.user = { id: session.nutzer_id };
-    req.sessionId = session.id;
-    next();
-  } catch (err) {
-    console.error(err);
-    res.status(503).json({ message: "Database is not reachable." });
-  }
+  };
 }
 
+// Standard-Instanz für die Routen; createRequireAuth ist für Tests da.
+const requireAuth = createRequireAuth(createAuthService(createSessionRepository()));
+
 module.exports = requireAuth;
+module.exports.createRequireAuth = createRequireAuth;
