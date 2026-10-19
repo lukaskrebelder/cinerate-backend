@@ -70,6 +70,8 @@ function toMovieDetail(row) {
     description: row.beschreibung || null,
     genres: row.genres,
     fsk: toFskNumber(row.fsk),
+    releaseYear: row.erscheinungsjahr ?? null,
+    runtime: row.laufzeit ?? null,
     posterUrl: row.poster_pfad ? IMAGE_BASE_URL + row.poster_pfad : null,
     avgRating: row.avg_rating === null ? null : Number(Number(row.avg_rating).toFixed(1)),
   };
