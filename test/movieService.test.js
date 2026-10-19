@@ -93,6 +93,7 @@ function fakeRepo(row) {
       repo.calls.push(["save", movie]);
       repo.row = {
         tmdb_id: movie.tmdbId, titel: movie.title, beschreibung: movie.description,
+        erscheinungsjahr: movie.year, laufzeit: movie.runtime,
         poster_pfad: movie.posterPath, fsk: movie.fsk, avg_rating: null,
         genres: movie.genres.map((g) => g.name),
       };
@@ -103,6 +104,7 @@ function fakeRepo(row) {
 
 const dbRow = {
   tmdb_id: 157336, titel: "Interstellar", beschreibung: "Astronauten suchen eine neue Heimat.",
+  erscheinungsjahr: 2014, laufzeit: 169,
   poster_pfad: "/abc.jpg", fsk: "12", avg_rating: "4.6667", genres: ["Drama", "Science Fiction"],
 };
 
@@ -117,6 +119,8 @@ test("getMovie: Film aus der Datenbank, TMDB wird nicht gefragt", async () => {
     description: "Astronauten suchen eine neue Heimat.",
     genres: ["Drama", "Science Fiction"],
     fsk: 12,
+    releaseYear: 2014,
+    runtime: 169,
     posterUrl: "https://image.tmdb.org/t/p/w500/abc.jpg",
     avgRating: 4.7,
   });
@@ -141,6 +145,8 @@ test("getMovie: Film nur bei TMDB wird gespeichert und zurückgegeben", async ()
   });
   assert.strictEqual(result.movieId, 157336);
   assert.strictEqual(result.fsk, 12);
+  assert.strictEqual(result.releaseYear, 2014);
+  assert.strictEqual(result.runtime, 169);
   assert.strictEqual(result.avgRating, null);
 });
 
@@ -150,6 +156,8 @@ test("getMovie: leere Beschreibung und fehlende Freigabe ergeben null", async ()
   const result = await createMovieService(client, repo).getMovie("5");
   assert.strictEqual(result.description, null);
   assert.strictEqual(result.fsk, null);
+  assert.strictEqual(result.releaseYear, null);
+  assert.strictEqual(result.runtime, null);
   assert.strictEqual(result.posterUrl, null);
 });
 

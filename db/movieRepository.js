@@ -7,7 +7,7 @@ function createMovieRepository(pool = defaultPool) {
   // avg_rating ist NULL, solange es keine Bewertung gibt.
   async function findByTmdbId(tmdbId) {
     const result = await pool.query(
-      `SELECT f.tmdb_id, f.titel, f.beschreibung, f.poster_pfad, f.fsk,
+      `SELECT f.tmdb_id, f.titel, f.beschreibung, f.erscheinungsjahr, f.laufzeit, f.poster_pfad, f.fsk,
               (SELECT AVG(b.punktzahl) FROM Bewertung b WHERE b.film_id = f.id) AS avg_rating,
               ARRAY(SELECT g.name FROM Genre g
                     JOIN Film_Genre fg ON fg.genre_id = g.id
