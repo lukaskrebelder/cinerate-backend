@@ -29,6 +29,7 @@ function createTmdbClient({
     }
 
     let lastError;
+    let notFound = false;
     for (let attempt = 0; attempt <= retries; attempt++) {
       // Pause vor jeder Wiederholung, bei jedem Versuch doppelt so lang (200 ms, 400 ms, ...)
       if (attempt > 0) await sleepFn(retryDelayMs * 2 ** (attempt - 1));
@@ -39,11 +40,13 @@ function createTmdbClient({
         if (response.ok) return await response.json();
 
         lastError = new Error(`TMDB-Anfrage fehlgeschlagen: ${response.status}`);
-        if (!isRetryableStatus(response.status)) break; // z. B. 404: nicht erneut versuchen
+        if (response.status === 404) { notFound = true; break; }
+        if (!isRetryableStatus(response.status)) break; // z. B. 401 (falscher Schlüssel): nicht erneut versuchen
       } catch (err) {
         lastError = err; // Netzwerkfehler oder Timeout: erneut versuchen
       }
     }
+    if (notFound) throw new AppError(404, "No movie found for this ID.");
 
     // Nur die Meldung loggen, nie die URL (sie enthält den API-Schlüssel)
     console.error(lastError.message);
@@ -55,6 +58,8 @@ function createTmdbClient({
     discoverMovies: ({ genreId, page = 1 }) =>
       request("/discover/movie", { with_genres: genreId, page }),
     getGenres: () => request("/genre/movie/list"),
+    getMovie: (tmdbId) =>
+      request(`/movie/${tmdbId}`, { append_to_response: "release_dates" }),
     getRecommendations: (tmdbId) => request(`/movie/${tmdbId}/recommendations`),
   };
 }

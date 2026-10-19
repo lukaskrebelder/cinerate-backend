@@ -90,7 +90,25 @@ test("bei 404 wird nicht wiederholt", async () => {
   const fetchFn = sequenceFetch({ ok: false, status: 404 });
   const client = createTmdbClient({ apiKey: "k", fetchFn, sleepFn: keinSchlaf });
   await stumm(() =>
-    assert.rejects(() => client.getRecommendations(1), (e) => e instanceof AppError && e.status === 503)
+        assert.rejects(() => client.getRecommendations(1), (e) => e instanceof AppError && e.status === 404)
+  )
+  assert.strictEqual(fetchFn.calls, 1);
+});
+
+test("getMovie fragt /movie/{id} mit release_dates ab", async () => {
+  const fetchFn = fakeFetch(ok({ id: 157336 }));
+  const client = createTmdbClient({ apiKey: "testkey", fetchFn });
+  await client.getMovie(157336);
+  assert.ok(fetchFn.calls[0].includes("/movie/157336"));
+  assert.ok(fetchFn.calls[0].includes("append_to_response=release_dates"));
+});
+
+test("getMovie: 404 von TMDB wird zu AppError 404 mit der Meldung aus der API", async () => {
+  const fetchFn = sequenceFetch({ ok: false, status: 404 });
+  const client = createTmdbClient({ apiKey: "k", fetchFn, sleepFn: keinSchlaf });
+  await assert.rejects(
+    () => client.getMovie(1),
+    (e) => e instanceof AppError && e.status === 404 && e.message === "No movie found for this ID."
   );
   assert.strictEqual(fetchFn.calls, 1);
 });

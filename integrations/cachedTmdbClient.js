@@ -18,6 +18,8 @@ function createCachedTmdbClient(tmdbClient, cache = createTtlCache()) {
         10 * MINUTE
       ),
     getGenres: () => cache.getOrLoad("genres", () => tmdbClient.getGenres(), 24 * HOUR),
+    getMovie: (tmdbId) =>
+      cache.getOrLoad(`movie:${tmdbId}`, () => tmdbClient.getMovie(tmdbId), HOUR),
     getRecommendations: (tmdbId) =>
       cache.getOrLoad(`recs:${tmdbId}`, () => tmdbClient.getRecommendations(tmdbId), HOUR),
     // Treffer und Fehlversuche, für den Nachweis der Antwortzeit mit und ohne Cache

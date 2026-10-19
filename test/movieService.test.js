@@ -78,3 +78,91 @@ test("ungültiger Text (Liste oder zu lang) gibt 400", async () => {
   await assert.rejects(() => service.searchMovies({ query: ["a", "b"] }), is400);
   await assert.rejects(() => service.searchMovies({ genre: "x".repeat(201) }), is400);
 });
+
+// --- getMovie (Detailseite) ---
+
+const is404 = (err) => err instanceof AppError && err.status === 404;
+
+// Ersatz-Repository: merkt sich Aufrufe; nach saveMovie liefert findByTmdbId den gespeicherten Film
+function fakeRepo(row) {
+  const repo = {
+    calls: [],
+    row,
+    findByTmdbId: async (id) => { repo.calls.push(["find", id]); return repo.row; },
+    saveMovie: async (movie) => {
+      repo.calls.push(["save", movie]);
+      repo.row = {
+        tmdb_id: movie.tmdbId, titel: movie.title, beschreibung: movie.description,
+        poster_pfad: movie.posterPath, fsk: movie.fsk, avg_rating: null,
+        genres: movie.genres.map((g) => g.name),
+      };
+    },
+  };
+  return repo;
+}
+
+const dbRow = {
+  tmdb_id: 157336, titel: "Interstellar", beschreibung: "Astronauten suchen eine neue Heimat.",
+  poster_pfad: "/abc.jpg", fsk: "12", avg_rating: "4.6667", genres: ["Drama", "Science Fiction"],
+};
+
+test("getMovie: Film aus der Datenbank, TMDB wird nicht gefragt", async () => {
+  let tmdbAufrufe = 0;
+  const client = { getMovie: async () => { tmdbAufrufe++; } };
+  const result = await createMovieService(client, fakeRepo(dbRow)).getMovie("157336");
+  assert.strictEqual(tmdbAufrufe, 0);
+  assert.deepStrictEqual(result, {
+    movieId: 157336,
+    title: "Interstellar",
+    description: "Astronauten suchen eine neue Heimat.",
+    genres: ["Drama", "Science Fiction"],
+    fsk: 12,
+    posterUrl: "https://image.tmdb.org/t/p/w500/abc.jpg",
+    avgRating: 4.7,
+  });
+});
+
+test("getMovie: Film nur bei TMDB wird gespeichert und zurückgegeben", async () => {
+  const repo = fakeRepo(undefined);
+  const client = {
+    getMovie: async () => ({
+      title: "Interstellar", overview: "Beschreibung", release_date: "2014-11-05",
+      poster_path: "/abc.jpg", runtime: 169,
+      genres: [{ id: 878, name: "Science Fiction" }, { id: 18, name: "Drama" }],
+      release_dates: { results: [{ iso_3166_1: "DE", release_dates: [{ certification: "" }, { certification: "12" }] }] },
+    }),
+  };
+  const result = await createMovieService(client, repo).getMovie("157336");
+  const gespeichert = repo.calls.find((c) => c[0] === "save")[1];
+  assert.deepStrictEqual(gespeichert, {
+    tmdbId: 157336, title: "Interstellar", description: "Beschreibung", year: 2014,
+    posterPath: "/abc.jpg", runtime: 169, fsk: "12",
+    genres: [{ tmdbGenreId: 878, name: "Science Fiction" }, { tmdbGenreId: 18, name: "Drama" }],
+  });
+  assert.strictEqual(result.movieId, 157336);
+  assert.strictEqual(result.fsk, 12);
+  assert.strictEqual(result.avgRating, null);
+});
+
+test("getMovie: leere Beschreibung und fehlende Freigabe ergeben null", async () => {
+  const repo = fakeRepo(undefined);
+  const client = { getMovie: async () => ({ title: "X", overview: "", genres: [], release_dates: { results: [] } }) };
+  const result = await createMovieService(client, repo).getMovie("5");
+  assert.strictEqual(result.description, null);
+  assert.strictEqual(result.fsk, null);
+  assert.strictEqual(result.posterUrl, null);
+});
+
+test("getMovie: ungültige ID ergibt 404, ohne Datenbank oder TMDB zu fragen", async () => {
+  const repo = fakeRepo(dbRow);
+  const service = createMovieService({ getMovie: async () => { throw new Error("darf nicht passieren"); } }, repo);
+  for (const id of ["abc", "0", "-1", "1.5", "99999999999", ""]) {
+    await assert.rejects(() => service.getMovie(id), is404);
+  }
+  assert.strictEqual(repo.calls.length, 0);
+});
+
+test("getMovie: Fehler von TMDB (z. B. 404) wird unverändert weitergegeben", async () => {
+  const client = { getMovie: async () => { throw new AppError(404, "No movie found for this ID."); } };
+  await assert.rejects(() => createMovieService(client, fakeRepo(undefined)).getMovie("1"), is404);
+});
