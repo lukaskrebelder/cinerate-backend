@@ -5,13 +5,8 @@ const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
 const { handleError } = require("../lib/appError");
-const { createTmdbClient } = require("../integrations/tmdbClient");
-const { createCachedTmdbClient } = require("../integrations/cachedTmdbClient");
-const { createMovieRepository } = require("../db/movieRepository");
-const { createMovieService } = require("../services/movieService");
 
-const tmdbClient = createCachedTmdbClient(createTmdbClient());
-const movieService = createMovieService(tmdbClient, createMovieRepository());
+const { movieService } = require("../services/container");
 
 router.get("/movies", requireAuth, async (req, res) => {
   try {
