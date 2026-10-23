@@ -116,8 +116,10 @@ function createMovieService(tmdbClient, movieRepository) {
     };
   }
 
-  // Detailseite (US-5, Kriterium 5.5 und 5.6): erst die Datenbank, sonst TMDB holen und speichern.
-  async function getMovie(movieIdParam) {
+   // Stellt sicher, dass der Film in der Datenbank steht: erst die DB, sonst TMDB holen und speichern.
+  // Gibt die Zeile aus findByTmdbId zurück. Genutzt von der Detailseite und von den Bewertungen.
+  // Ungültige oder unbekannte IDs ergeben 404.
+  async function ensureMovie(movieIdParam) {
     const tmdbId = parseMovieId(movieIdParam);
     let row = await movieRepository.findByTmdbId(tmdbId);
 
@@ -136,10 +138,15 @@ function createMovieService(tmdbClient, movieRepository) {
       row = await movieRepository.findByTmdbId(tmdbId);
     }
 
-    return toMovieDetail(row);
+    return row;
   }
 
-  return { searchMovies, getMovie };
-}
+  // Detailseite (US-5, Kriterium 5.5 und 5.6)
+  async function getMovie(movieIdParam) {
+    return toMovieDetail(await ensureMovie(movieIdParam));
+  }
 
+  return { searchMovies, getMovie, ensureMovie };
+
+}
 module.exports = { createMovieService };
