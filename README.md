@@ -71,6 +71,25 @@ git push heroku main
 Das Schema wird separat über `cinerate-db` initialisiert (gegen dieselbe
 `DATABASE_URL`).
 
+## Messung: TMDB-Cache (PB-24)
+
+Der Cache (`integrations/cachedTmdbClient.js`) hält Antworten von TMDB im Arbeitsspeicher: Suche und Genre-Auswahl 10 Minuten, Filmdetail und Empfehlungen 1 Stunde, Genre-Liste 24 Stunden. Gleiche Anfragen innerhalb dieser Zeit gehen nicht erneut an TMDB.
+
+**Messung:** `node scripts/messung-cache.js` (22.10.2026, lokaler Rechner, Heimnetz, TMDB live, kein Heroku). Pro Lauf wird dieselbe Suche („Interstellar“) dreimal und dasselbe Filmdetail (TMDB-ID 157336) zweimal abgefragt, mit leerem Cache am Anfang. Drei Läufe:
+
+| Aufruf | Lauf 1 | Lauf 2 | Lauf 3 |
+| --- | --- | --- | --- |
+| Suche, 1. Aufruf (ohne Cache, TMDB) | 432,2 ms | 206,4 ms | 205,1 ms |
+| Suche, 2. Aufruf (Cache) | 0,0 ms | 0,0 ms | 0,0 ms |
+| Suche, 3. Aufruf (Cache) | 0,0 ms | 0,1 ms | 0,0 ms |
+| Filmdetail, 1. Aufruf (ohne Cache, TMDB) | 128,1 ms | 24,8 ms | 29,2 ms |
+| Filmdetail, 2. Aufruf (Cache) | 0,0 ms | 0,0 ms | 0,0 ms |
+| Cache-Zähler (Treffer / Fehlversuche) | 3 / 2 | 3 / 2 | 3 / 2 |
+
+**Ergebnis:** Aus dem Cache kommt die Antwort ohne messbare Wartezeit (unter 0,1 ms), ein TMDB-Aufruf dauert dagegen etwa 205 bis 430 ms (Suche) und 25 bis 130 ms (Filmdetail). Der erste Aufruf von Lauf 1 ist am langsamsten, weil dort die Verbindung zu TMDB erst aufgebaut wird. Der Zähler passt zum Ablauf: Pro Lauf 2 Fehlversuche (die beiden ersten Aufrufe) und 3 Treffer.
+
+**Grenzen:** Die Messung läuft lokal und nicht auf Heroku. Die Zeiten hängen von Netz und TMDB ab. Der Cache liegt im Speicher einer Instanz und geht beim Neustart verloren (siehe ADR-06).
+
 ## Tech-Stack
 
 Node.js, Express, PostgreSQL (über `pg`), TMDB-API
