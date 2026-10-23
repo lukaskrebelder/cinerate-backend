@@ -6,6 +6,7 @@ const usersRoute = require("./routes/users");
 const authRoute = require("./routes/auth");
 const moviesRoute = require("./routes/movies");
 const ratingsRoute = require("./routes/ratings");
+const watchlistRoute = require("./routes/watchlist");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use("/api", usersRoute);
 app.use("/api", authRoute);
 app.use("/api", moviesRoute);
 app.use("/api", ratingsRoute);
+app.use("/api", watchlistRoute);
 
 app.listen(PORT, () => {
   console.log(`CineRate-Backend läuft auf http://localhost:${PORT}`);

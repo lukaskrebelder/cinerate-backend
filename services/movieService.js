@@ -9,6 +9,12 @@ const MAX_PAGE = 500; // TMDB liefert nicht mehr Seiten
 const MAX_TMDB_ID = 2147483647; // größte Zahl, die die Spalte INTEGER in Postgres speichert
 const FSK_VALUES = [0, 6, 12, 16, 18];
 
+// Poster-URL aus dem gespeicherten Pfad; ohne Pfad null (auch für die Watchlist)
+function toPosterUrl(posterPath) {
+  return posterPath ? IMAGE_BASE_URL + posterPath : null;
+}
+
+  
 function invalidFilter() {
   return new AppError(400, "Invalid filter value.");
 }
@@ -149,4 +155,4 @@ function createMovieService(tmdbClient, movieRepository) {
   return { searchMovies, getMovie, ensureMovie };
 
 }
-module.exports = { createMovieService };
+module.exports = { createMovieService, toPosterUrl };
