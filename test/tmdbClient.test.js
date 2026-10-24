@@ -35,7 +35,10 @@ test("Fehlerstatus von TMDB wird zu AppError 503", async () => {
   const client = createTmdbClient({ apiKey: "k", fetchFn: fakeFetch({ ok: false, status: 500 }), sleepFn: async () => {} });
   const original = console.error;
   console.error = () => {};
-  await assert.rejects(() => client.getGenres(), (e) => e instanceof AppError && e.status === 503);
+  await assert.rejects(
+    () => client.getGenres(),
+    (e) => e instanceof AppError && e.status === 503 && e.message === "Movie data is currently unavailable."
+  );
   console.error = original;
 });
 

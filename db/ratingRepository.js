@@ -32,7 +32,26 @@ function createRatingRepository(pool = defaultPool) {
     return result.rows[0];
   }
 
-  return { saveRating, getSummary };
+  // Alle Bewertungen des Nutzers mit TMDB-ID, Sternen und Genre-Namen (alphabetisch),
+  // die zuletzt bewertete zuerst. Grundlage für die Filmvorschläge (US-1).
+  async function listRatedMovies(userId) {
+    const result = await pool.query(
+      `SELECT f.tmdb_id,
+              b.punktzahl,
+              COALESCE(array_agg(g.name ORDER BY g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres
+       FROM Bewertung b
+       JOIN Film f ON f.id = b.film_id
+       LEFT JOIN Film_Genre fg ON fg.film_id = f.id
+       LEFT JOIN Genre g ON g.id = fg.genre_id
+       WHERE b.nutzer_id = $1
+       GROUP BY b.id, f.id
+       ORDER BY b.aktualisiert_am DESC, b.id DESC`,
+      [userId]
+    );
+    return result.rows;
+  }
+
+  return { saveRating, getSummary, listRatedMovies };
 }
 
 module.exports = { createRatingRepository };

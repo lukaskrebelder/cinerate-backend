@@ -34,3 +34,13 @@ test("getSummary liefert undefined, wenn der Film nicht in der Datenbank steht",
   const result = await createRatingRepository(fakePool([])).getSummary({ userId: 7, tmdbId: 1 });
   assert.strictEqual(result, undefined);
 });
+
+test("listRatedMovies übergibt die Nutzer-ID, sortiert nach zuletzt bewertet und liefert die Zeilen", async () => {
+  const rows = [{ tmdb_id: 27205, punktzahl: 5, genres: ["Action", "Science Fiction"] }];
+  const pool = fakePool(rows);
+  const result = await createRatingRepository(pool).listRatedMovies(7);
+  assert.deepStrictEqual(result, rows);
+  assert.deepStrictEqual(pool.calls[0].params, [7]);
+  assert.match(pool.calls[0].text, /WHERE b\.nutzer_id = \$1/);
+  assert.match(pool.calls[0].text, /ORDER BY b\.aktualisiert_am DESC/);
+});
