@@ -50,7 +50,7 @@ function createTmdbClient({
 
     // Nur die Meldung loggen, nie die URL (sie enthält den API-Schlüssel)
     console.error(lastError.message);
-    throw new AppError(503, "Search is currently unavailable.");
+    throw new AppError(503, "Movie data is currently unavailable.");
   }
 
   return {

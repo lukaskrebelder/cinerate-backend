@@ -8,10 +8,13 @@ const { createWatchlistRepository } = require("../db/watchlistRepository");
 const { createMovieService } = require("./movieService");
 const { createRatingService } = require("./ratingService");
 const { createWatchlistService } = require("./watchlistService");
+const { createRecommendationService } = require("./recommendationService");
 
 const tmdbClient = createCachedTmdbClient(createTmdbClient());
 const movieService = createMovieService(tmdbClient, createMovieRepository());
-const ratingService = createRatingService(movieService, createRatingRepository());
+const ratingRepository = createRatingRepository();
+const ratingService = createRatingService(movieService, ratingRepository);
 const watchlistService = createWatchlistService(movieService, createWatchlistRepository());
+const recommendationService = createRecommendationService(tmdbClient, ratingRepository);
 
-module.exports = { movieService, ratingService, watchlistService };
+module.exports = { movieService, ratingService, watchlistService, recommendationService };
