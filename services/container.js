@@ -5,10 +5,12 @@ const { createCachedTmdbClient } = require("../integrations/cachedTmdbClient");
 const { createMovieRepository } = require("../db/movieRepository");
 const { createRatingRepository } = require("../db/ratingRepository");
 const { createWatchlistRepository } = require("../db/watchlistRepository");
+const { createStatusRepository } = require("../db/statusRepository");
 const { createMovieService } = require("./movieService");
 const { createRatingService } = require("./ratingService");
 const { createWatchlistService } = require("./watchlistService");
 const { createRecommendationService } = require("./recommendationService");
+const { createStatusService } = require("./statusService");
 
 const tmdbClient = createCachedTmdbClient(createTmdbClient());
 const movieService = createMovieService(tmdbClient, createMovieRepository());
@@ -16,5 +18,6 @@ const ratingRepository = createRatingRepository();
 const ratingService = createRatingService(movieService, ratingRepository);
 const watchlistService = createWatchlistService(movieService, createWatchlistRepository());
 const recommendationService = createRecommendationService(tmdbClient, ratingRepository);
+const statusService = createStatusService(createStatusRepository());
 
-module.exports = { movieService, ratingService, watchlistService, recommendationService };
+module.exports = { movieService, ratingService, watchlistService, recommendationService, statusService };
