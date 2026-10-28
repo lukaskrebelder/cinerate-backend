@@ -96,17 +96,38 @@ test("bereits bewertete Filme und Dubletten erscheinen nicht", async () => {
   const rows = [rated(1, 5, ["Drama"]), rated(2, 4, ["Drama"]), rated(3, 2, ["Drama"])];
   const tmdb = fakeTmdb({ 1: [2, 20, 3, 21], 2: [20, 22, 1] });
   const result = await createRecommendationService(tmdb, repoWith(rows)).getRecommendations({ userId: 1 });
-  assert.deepStrictEqual(result.movies.map((m) => m.movieId), [20, 21, 22]);
+  // reihum: erst der erste Treffer jeder Quelle (2 ist bewertet, 20 kommt von Quelle 2), dann der zweite usw.
+  assert.deepStrictEqual(result.movies.map((m) => m.movieId), [20, 22, 21]);
 });
 
-test("höchstens 10 Vorschläge, danach keine weiteren TMDB-Aufrufe", async () => {
+test("höchstens 10 Vorschläge, aufgefüllt aus der Quelle mit den meisten Treffern", async () => {
   const rows = [rated(1, 5, ["Drama"]), rated(2, 5, ["Drama"]), rated(3, 5, ["Drama"])];
   const many = Array.from({ length: 15 }, (_, i) => 100 + i);
   const tmdb = fakeTmdb({ 1: many, 2: [200], 3: [300] });
   const result = await createRecommendationService(tmdb, repoWith(rows)).getRecommendations({ userId: 1 });
   assert.strictEqual(result.movies.length, 10);
-  assert.deepStrictEqual(result.movies.map((m) => m.movieId), many.slice(0, 10));
-  assert.deepStrictEqual(tmdb.calls, [1]);
+  assert.deepStrictEqual(result.movies.map((m) => m.movieId), [100, 200, 300, 101, 102, 103, 104, 105, 106, 107]);
+});
+
+test("Vorschläge stammen reihum von allen Quellfilmen, nicht nur vom zuletzt bewerteten", async () => {
+  const rows = [rated(1, 5, ["Action"]), rated(2, 5, ["Action"]), rated(3, 4, ["Action"])];
+  const lang = (start) => Array.from({ length: 20 }, (_, i) => start + i);
+  const tmdb = fakeTmdb({ 1: lang(100), 2: lang(200), 3: lang(300) });
+  const result = await createRecommendationService(tmdb, repoWith(rows)).getRecommendations({ userId: 1 });
+  const ids = result.movies.map((m) => m.movieId);
+  assert.deepStrictEqual(ids, [100, 200, 300, 101, 201, 301, 102, 202, 302, 103]);
+  assert.ok(ids.some((id) => id >= 100 && id < 200));
+  assert.ok(ids.some((id) => id >= 200 && id < 300));
+  assert.ok(ids.some((id) => id >= 300));
+});
+
+test("höchstens 10 Quellfilme, dafür höchstens 10 TMDB-Aufrufe", async () => {
+  const rows = Array.from({ length: 14 }, (_, i) => rated(i + 1, 5, ["Drama"]));
+  const map = Object.fromEntries(rows.map((r) => [r.tmdb_id, [1000 + r.tmdb_id]]));
+  const tmdb = fakeTmdb(map);
+  const result = await createRecommendationService(tmdb, repoWith(rows)).getRecommendations({ userId: 1 });
+  assert.deepStrictEqual(tmdb.calls, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.strictEqual(result.movies.length, 10);
 });
 
 test("Antwort: Titel, Beschreibung, Poster-URL; fehlende Werte werden null", async () => {

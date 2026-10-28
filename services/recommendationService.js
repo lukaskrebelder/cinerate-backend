@@ -6,6 +6,7 @@ const { toPosterUrl } = require("./movieService");
 const MIN_RATED_MOVIES = 3; // so viele Bewertungen braucht der Nutzer mindestens
 const MIN_LIKED_STARS = 4; // ab dieser Sternezahl zählt ein Film für das Lieblingsgenre
 const MAX_RECOMMENDATIONS = 10;
+const MAX_SOURCES = 10; // so viele Filme dienen höchstens als Grundlage (zuletzt bewertet zuerst)
 
 const byGermanName = (a, b) => a.localeCompare(b, "de");
 
@@ -56,30 +57,36 @@ function createRecommendationService(tmdbClient, ratingRepository) {
     const favoriteGenre = pickFavoriteGenre(liked);
     if (favoriteGenre === null) throw noRecommendations;
 
-    // Empfehlungen zu den Filmen im Lieblingsgenre, zuletzt bewertet zuerst, in TMDB-Reihenfolge.
-    // Bereits bewertete Filme und Dubletten fallen weg, bei 10 Treffern ist Schluss.
-    const sources = liked.filter((movie) => movie.genres.includes(favoriteGenre));
+        // Quellen sind die Filme im Lieblingsgenre mit 4 oder 5 Sternen, zuletzt bewertet zuerst (höchstens MAX_SOURCES).
+    const sources = liked.filter((movie) => movie.genres.includes(favoriteGenre)).slice(0, MAX_SOURCES);
     const alreadyRated = new Set(rated.map((movie) => movie.tmdb_id));
+
+    // Empfehlungen zu allen Quellen holen (gleichzeitig, die TMDB-Antworten sind meist im Cache).
+    const lists = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const data = await tmdbClient.getRecommendations(source.tmdb_id);
+          return data.results ?? [];
+        } catch (err) {
+          // TMDB kennt diesen Film nicht mehr: nur diese Quelle überspringen, nicht die ganze Anfrage abbrechen
+          if (err instanceof AppError && err.status === 404) return [];
+          throw err;
+        }
+      })
+    );
+
+    // Reihum auswählen: erst der erste Vorschlag jeder Quelle, dann der zweite usw. So stammen die 10 Vorschläge
+    // von allen Quellfilmen und nicht nur vom zuletzt bewerteten. Bereits bewertete Filme und Dubletten fallen weg.
     const seen = new Set();
     const movies = [];
-
-    for (const source of sources) {
-      let data;
-      try {
-        data = await tmdbClient.getRecommendations(source.tmdb_id);
-      } catch (err) {
-        // TMDB kennt diesen Film nicht mehr: nur diese Quelle überspringen, nicht die ganze Anfrage abbrechen
-        if (err instanceof AppError && err.status === 404) continue;
-        throw err;
-      }
-
-      for (const candidate of data.results ?? []) {
-        if (alreadyRated.has(candidate.id) || seen.has(candidate.id)) continue;
+    for (let platz = 0; movies.length < MAX_RECOMMENDATIONS && lists.some((results) => platz < results.length); platz++) {
+      for (const results of lists) {
+        const candidate = results[platz];
+        if (!candidate || alreadyRated.has(candidate.id) || seen.has(candidate.id)) continue;
         seen.add(candidate.id);
         movies.push(toRecommendation(candidate));
         if (movies.length === MAX_RECOMMENDATIONS) break;
       }
-      if (movies.length === MAX_RECOMMENDATIONS) break;
     }
 
     if (movies.length === 0) throw noRecommendations;
