@@ -1,18 +1,15 @@
-// Beispiel-Route, die zeigt, dass Backend + Datenbank erreichbar sind
+// Status: GET /api/status zeigt, dass Backend und Datenbank erreichbar sind.
+// Die Route macht nur HTTP, die Antwort baut der statusService.
 const express = require("express");
 const router = express.Router();
-const pool = require("../db/connection");
+const { handleError } = require("../lib/appError");
+const { statusService } = require("../services/container");
 
 router.get("/status", async (req, res) => {
   try {
-    const result = await pool.query("SELECT COUNT(*) AS anzahl FROM Film");
-    res.json({
-      status: "ok",
-      nachricht: "CineRate-Backend läuft",
-      filmeInDb: parseInt(result.rows[0].anzahl, 10),
-    });
+    res.json(await statusService.getStatus());
   } catch (err) {
-    res.status(500).json({ status: "error", nachricht: err.message });
+    handleError(err, res);
   }
 });
 
