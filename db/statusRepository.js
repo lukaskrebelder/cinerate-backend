@@ -1,5 +1,6 @@
 // Repository für den Status: enthält nur SQL, keine HTTP- oder Fachregeln.
 // Die Verbindung (pool) lässt sich in Tests durch eine Attrappe ersetzen.
+// KI-Log A27
 const defaultPool = require("./connection");
 
 function createStatusRepository(pool = defaultPool) {

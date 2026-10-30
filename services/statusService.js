@@ -1,5 +1,6 @@
 // Status des Backends (zeigt, dass Backend und Datenbank laufen). Kennt weder HTTP noch SQL.
 // statusRepository: Objekt mit countMovies (siehe db/statusRepository.js)
+// KI-Log A27
 function createStatusService(statusRepository) {
   // GET /status
   async function getStatus() {

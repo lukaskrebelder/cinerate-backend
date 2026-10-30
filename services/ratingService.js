@@ -1,5 +1,6 @@
 // Fachregeln für Bewertungen (US-4). Kennt weder HTTP noch SQL.
 // Der Film wird bei Bedarf über den movieService aus TMDB importiert (ensureMovie).
+// KI-Log A22
 const { AppError } = require("../lib/appError");
 
 const MIN_STARS = 1;

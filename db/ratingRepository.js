@@ -1,5 +1,6 @@
 // Repository für Bewertungen: enthält nur SQL, keine HTTP- oder Fachregeln.
 // Die Verbindung (pool) lässt sich in Tests durch eine Attrappe ersetzen.
+// KI-Log A22
 const defaultPool = require("./connection");
 
 function createRatingRepository(pool = defaultPool) {
@@ -32,6 +33,7 @@ function createRatingRepository(pool = defaultPool) {
     return result.rows[0];
   }
 
+  // KI-Log A25
   // Alle Bewertungen des Nutzers mit TMDB-ID, Sternen und Genre-Namen (alphabetisch),
   // die zuletzt bewertete zuerst. Grundlage für die Filmvorschläge (US-1).
   async function listRatedMovies(userId) {

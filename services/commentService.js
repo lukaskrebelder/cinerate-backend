@@ -1,6 +1,7 @@
 // Fachregeln für Kommentare (PB-32 bis PB-35). Kennt weder HTTP noch SQL.
 // Schreiben und Lesen importieren den Film bei Bedarf über den movieService (ensureMovie).
 // Bearbeiten und Löschen importieren nichts: Ein Kommentar kann nur zu einem Film existieren, der schon in der DB steht.
+// KI-Log A28
 const { AppError } = require("../lib/appError");
 
 const MAX_COMMENT_LENGTH = 500;

@@ -1,5 +1,6 @@
 // Bewertungen (US-4): POST und GET /api/movies/{movieId}/ratings
 // Die Route macht nur HTTP, die Fachregeln stehen im ratingService.
+// KI-Log A22
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");

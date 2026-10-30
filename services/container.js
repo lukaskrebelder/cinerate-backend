@@ -1,5 +1,6 @@
 // Baut die Objekte der Anwendung einmal zusammen, damit alle Routen dieselben Instanzen nutzen
 // (zum Beispiel denselben TMDB-Cache).
+// KI-Log A22
 const { createTmdbClient } = require("../integrations/tmdbClient");
 const { createCachedTmdbClient } = require("../integrations/cachedTmdbClient");
 const { createMovieRepository } = require("../db/movieRepository");

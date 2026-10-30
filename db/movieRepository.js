@@ -1,5 +1,6 @@
 // Repository für Filme: enthält nur SQL, keine HTTP- oder Fachregeln.
 // Die Verbindung (pool) lässt sich in Tests durch eine Attrappe ersetzen.
+// KI-Log A21
 const defaultPool = require("./connection");
 
 function createMovieRepository(pool = defaultPool) {

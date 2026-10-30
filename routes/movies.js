@@ -8,6 +8,7 @@ const { handleError } = require("../lib/appError");
 
 const { movieService } = require("../services/container");
 
+// KI-Log A17
 router.get("/movies", requireAuth, async (req, res) => {
   try {
     const { query, genre, page } = req.query;
@@ -18,6 +19,7 @@ router.get("/movies", requireAuth, async (req, res) => {
   }
 });
 
+// KI-Log A21
 // Detailseite: movieId ist die TMDB-ID
 router.get("/movies/:movieId", requireAuth, async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 # Automatische Tests für das Backend mit GitHub Actions
 # GitHub führt diese Schritte in der Cloud aus und zeigt an, ob alle Tests bestanden haben
+# KI-Log A13
 
 name: Backend tests
 

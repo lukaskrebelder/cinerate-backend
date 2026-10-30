@@ -1,5 +1,6 @@
 // Repository für Kommentare: enthält nur SQL, keine HTTP- oder Fachregeln.
 // Die Verbindung (pool) lässt sich in Tests durch eine Attrappe ersetzen.
+// KI-Log A28
 const defaultPool = require("./connection");
 
 // Die Spalten sind TIMESTAMP ohne Zeitzone (Heroku Postgres speichert UTC). to_char liefert daher

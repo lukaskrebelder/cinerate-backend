@@ -1,5 +1,7 @@
 // Fachregeln für die Filmvorschläge (US-1, PB-26). Kennt weder HTTP noch SQL.
 // Vorschläge werden nicht gespeichert: Titel, Beschreibung und Poster kommen direkt aus der TMDB-Antwort.
+// KI-Log A25
+// KI-Log A26
 const { AppError } = require("../lib/appError");
 const { toPosterUrl } = require("./movieService");
 

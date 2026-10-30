@@ -1,5 +1,6 @@
 // Watchlist (US-3): GET /api/watchlist, POST /api/watchlist, DELETE /api/watchlist/{movieId}
 // Die Route macht nur HTTP, die Fachregeln stehen im watchlistService.
+// KI-Log A24
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");

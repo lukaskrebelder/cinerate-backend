@@ -1,4 +1,5 @@
 // Fachregeln für Nutzer (US-2). Kennt weder HTTP (req/res) noch SQL.
+// KI-Log A15
 const { AppError } = require("../lib/appError");
 const { normalizeEmail, isValidRegistration } = require("../lib/validation");
 const { hashPassword: defaultHashPassword } = require("../lib/password");
