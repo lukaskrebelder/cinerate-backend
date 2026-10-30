@@ -1,3 +1,5 @@
+// KI-Log A25
+// KI-Log A26
 const test = require("node:test");
 const assert = require("node:assert");
 const { createRecommendationService, pickFavoriteGenre } = require("../services/recommendationService");

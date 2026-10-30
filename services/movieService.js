@@ -93,6 +93,7 @@ function createMovieService(tmdbClient, movieRepository) {
     return found.id;
   }
 
+  // KI-Log A17
   // Suche nach Titel und/oder Genre, mit Seitennummer.
   // Einschränkung: Mit Titel und Genre filtert der Service die Treffer einer TMDB-Seite nach Genre,
   // eine Seite kann dadurch weniger Filme enthalten und totalPages ist eine Obergrenze.
@@ -122,6 +123,7 @@ function createMovieService(tmdbClient, movieRepository) {
     };
   }
 
+  // KI-Log A21
    // Stellt sicher, dass der Film in der Datenbank steht: erst die DB, sonst TMDB holen und speichern.
   // Gibt die Zeile aus findByTmdbId zurück. Genutzt von der Detailseite und von den Bewertungen.
   // Ungültige oder unbekannte IDs ergeben 404.

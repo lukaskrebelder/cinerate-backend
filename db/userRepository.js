@@ -1,5 +1,6 @@
 // Repository für Nutzer: enthält nur SQL, keine HTTP- oder Fachregeln.
 // Die Verbindung (pool) lässt sich in Tests durch eine Attrappe ersetzen.
+// KI-Log A15
 const defaultPool = require("./connection");
 const { AppError } = require("../lib/appError");
 

@@ -1,5 +1,6 @@
 // Filmvorschläge (US-1): GET /api/recommendations
 // Die Route macht nur HTTP, die Fachregeln stehen im recommendationService.
+// KI-Log A25
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");

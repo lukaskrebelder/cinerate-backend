@@ -1,6 +1,7 @@
 // Messung der Antwortzeit mit und ohne Cache (PB-24, Nachweis für das Portfolio).
 // Aufruf im Ordner cinerate-backend: node scripts/messung-cache.js
 // Braucht TMDB_API_KEY in der .env. Keine Datenbank, kein Token.
+// KI-Log A23
 require("dotenv").config();
 const { createTmdbClient } = require("../integrations/tmdbClient");
 const { createCachedTmdbClient } = require("../integrations/cachedTmdbClient");

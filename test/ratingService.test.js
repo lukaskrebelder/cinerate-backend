@@ -1,3 +1,4 @@
+// KI-Log A22
 const test = require("node:test");
 const assert = require("node:assert");
 const { createRatingService } = require("../services/ratingService");

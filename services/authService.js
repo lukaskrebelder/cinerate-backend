@@ -1,4 +1,5 @@
 // Fachregeln für Anmeldung und Sitzung (US-2). Kennt weder HTTP (req/res) noch SQL.
+// KI-Log A18
 const { AppError } = require("../lib/appError");
 const { normalizeEmail, isNonEmptyText } = require("../lib/validation");
 const { verifyPassword: defaultVerifyPassword } = require("../lib/password");

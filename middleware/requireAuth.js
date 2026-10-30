@@ -1,5 +1,6 @@
 // Prüft den Header "Authorization: Bearer <token>" bei geschützten Routen.
 // Die eigentliche Prüfung (Hash, Ablauf, Rolle) macht der authService.
+// KI-Log A18
 const { AppError, handleError } = require("../lib/appError");
 const { createSessionRepository } = require("../db/sessionRepository");
 const { createAuthService } = require("../services/authService");

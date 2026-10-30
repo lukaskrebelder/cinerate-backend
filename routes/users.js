@@ -1,4 +1,5 @@
 // Nutzer-Routen (US-2): nur HTTP, die Fachregeln stehen im userService.
+// KI-Log A15
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");

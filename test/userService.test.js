@@ -1,3 +1,4 @@
+// KI-Log A15
 const test = require("node:test");
 const assert = require("node:assert");
 const { createUserService } = require("../services/userService");

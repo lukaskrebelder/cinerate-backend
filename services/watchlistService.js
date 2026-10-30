@@ -1,5 +1,6 @@
 // Fachregeln für die Watchlist (US-3). Kennt weder HTTP noch SQL.
 // Beim Hinzufügen wird der Film bei Bedarf über den movieService aus TMDB importiert (ensureMovie).
+// KI-Log A24
 const { AppError } = require("../lib/appError");
 const { toPosterUrl } = require("./movieService");
 

@@ -1,5 +1,8 @@
 // Client für die TMDB-API (Fremdservice). Enthält nur die Aufrufe an TMDB,
 // keine Fachregeln. Fetch, Timeout, Wiederholungen und Wartezeit lassen sich in Tests austauschen.
+// KI-Log A14
+// KI-Log A16
+// KI-Log A19
 const { AppError } = require("../lib/appError");
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";

@@ -1,4 +1,5 @@
 // Repository für Sitzungen und Anmelde-Daten: enthält nur SQL.
+// KI-Log A18
 const defaultPool = require("./connection");
 
 function createSessionRepository(pool = defaultPool) {

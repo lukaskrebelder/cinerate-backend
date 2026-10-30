@@ -1,5 +1,6 @@
 // Kommentare (PB-32 bis PB-35): /api/movies/{movieId}/comments
 // Die Route macht nur HTTP, die Fachregeln stehen im commentService.
+// KI-Log A28
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");

@@ -1,5 +1,6 @@
 // Legt einen Cache um den TMDB-Client (Infrastruktur-Optimierung, ADR-06).
 // Gleiche Anfragen innerhalb der Haltedauer gehen nicht erneut an TMDB.
+// KI-Log A16
 const { createTtlCache } = require("../lib/ttlCache");
 
 const MINUTE = 60 * 1000;
