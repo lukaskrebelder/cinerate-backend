@@ -7,6 +7,7 @@ const authRoute = require("./routes/auth");
 const moviesRoute = require("./routes/movies");
 const ratingsRoute = require("./routes/ratings");
 const watchlistRoute = require("./routes/watchlist");
+const commentsRoute = require("./routes/comments");
 const recommendationsRoute = require("./routes/recommendations");
 
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api", authRoute);
 app.use("/api", moviesRoute);
 app.use("/api", ratingsRoute);
 app.use("/api", watchlistRoute);
+app.use("/api", commentsRoute);
 app.use("/api", recommendationsRoute);
 
 app.listen(PORT, () => {
