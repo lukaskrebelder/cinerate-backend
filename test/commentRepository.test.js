@@ -32,6 +32,7 @@ test("listComments sortiert neueste zuerst, gibt Zeiten als ISO-Text zurück und
   assert.match(pool.calls[0].text, /ORDER BY k\.erstellt_am DESC, k\.id DESC/);
   assert.match(pool.calls[0].text, /to_char\(k\.erstellt_am/);
   assert.match(pool.calls[0].text, /to_char\(k\.aktualisiert_am/);
+  assert.match(pool.calls[0].text, /to_char\(k\.erstellt_am, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'\)/);
   assert.deepStrictEqual(pool.calls[0].params, [157336, 20, 40]);
 });
 

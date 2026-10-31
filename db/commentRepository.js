@@ -5,7 +5,7 @@ const defaultPool = require("./connection");
 
 // Die Spalten sind TIMESTAMP ohne Zeitzone (Heroku Postgres speichert UTC). to_char liefert daher
 // direkt einen ISO-Text mit "Z" und umgeht die Zeitzone des Node-Prozesses.
-const ISO = `"YYYY-MM-DD"T"HH24:MI:SS"Z"`;
+const ISO = `YYYY-MM-DD"T"HH24:MI:SS"Z"`;
 
 function createCommentRepository(pool = defaultPool) {
   // Speichert einen Kommentar zum Film (TMDB-ID) und gibt die neue Kommentar-ID zurück.
