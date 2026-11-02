@@ -13,10 +13,10 @@ function createAuthService(
   createToken = defaultCreateToken,
   hashToken = defaultHashToken
 ) {
-  // Anmeldung: prüft die Zugangsdaten und gibt Token und userId zurück.
+    // Anmeldung: prüft die Zugangsdaten und gibt Token, userId und Rolle zurück.
   async function login(data) {
     const body = data || {};
-    if (!isNonEmptyText(body.email) || !isNonEmptyText(body.password)) {
+        if (!isNonEmptyText(body.email) || !isNonEmptyText(body.password)) {
       throw new AppError(400, "Email and password are required.");
     }
 
@@ -31,7 +31,7 @@ function createAuthService(
     // Token geht an den Nutzer, nur der Hash wird gespeichert
     const { token, tokenHash } = createToken();
     await sessionRepository.createSession(user.id, tokenHash);
-    return { token, userId: "u_" + user.id };
+        return { token, userId: "u_" + user.id, rolle: user.rolle };
   }
 
   // Token prüfen: gibt den angemeldeten Nutzer zurück oder wirft 401.

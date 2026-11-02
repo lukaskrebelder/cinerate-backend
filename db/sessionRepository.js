@@ -6,7 +6,7 @@ function createSessionRepository(pool = defaultPool) {
   // Nutzer für die Anmeldung per E-Mail suchen (undefined, wenn es ihn nicht gibt).
   async function findUserByEmail(email) {
     const result = await pool.query(
-      "SELECT id, passwort_hash FROM Nutzer WHERE email = $1",
+      "SELECT id, passwort_hash, rolle FROM Nutzer WHERE email = $1",
       [email]
     );
     return result.rows[0];

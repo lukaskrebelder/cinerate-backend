@@ -38,11 +38,17 @@ test("login mit falschem Passwort wirft 401", async () => {
   await assert.rejects(() => service.login({ email: "a@b.de", password: "falsch" }), status(401));
 });
 
-test("login mit richtigen Daten gibt Token und userId zurück und speichert nur den Hash", async () => {
-  const { service, gespeichert } = bauen({ user: { id: 1, passwort_hash: "geheim123" } });
+test("login mit richtigen Daten gibt Token, userId und Rolle zurück und speichert nur den Hash", async () => {
+  const { service, gespeichert } = bauen({ user: { id: 1, passwort_hash: "geheim123", rolle: "Nutzer" } });
   const result = await service.login({ email: "A@B.de", password: "geheim123" });
-  assert.deepStrictEqual(result, { token: "tok", userId: "u_1" });
+  assert.deepStrictEqual(result, { token: "tok", userId: "u_1", rolle: "Nutzer" });
   assert.deepStrictEqual(gespeichert, [[1, "tokhash"]]);
+});
+
+test("login eines Moderators gibt die Rolle Moderator zurück", async () => {
+  const { service } = bauen({ user: { id: 7, passwort_hash: "geheim123", rolle: "Moderator" } });
+  const result = await service.login({ email: "m@b.de", password: "geheim123" });
+  assert.deepStrictEqual(result, { token: "tok", userId: "u_7", rolle: "Moderator" });
 });
 
 test("authenticate gibt Nutzer-ID, Rolle und Sitzungs-ID zurück", async () => {
