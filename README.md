@@ -33,7 +33,7 @@ Alle Pfade haben das Präfix `/api`. Geschützte Endpunkte erwarten den Header
 | Methode | Pfad | Geschützt | Erfolg | Fehler |
 |---|---|---|---|---|
 | POST | `/api/users` | nein | 201 `{ message, userId }` | 400 ungültige Daten, 409 E-Mail existiert schon, 503 DB nicht erreichbar |
-| POST | `/api/auth` | nein | 200 `{ token }` | 400 Daten fehlen, 401 E-Mail oder Passwort falsch, 503 |
+| POST | `/api/auth` | nein | 200 `{ token, userId, rolle }` | 400 Daten fehlen, 401 E-Mail oder Passwort falsch, 503 |
 | DELETE | `/api/auth` | ja | 200 `{ message }` | 401 Token ungültig oder abgelaufen |
 | DELETE | `/api/users/{userId}` | ja | 200 `{ message }` | 401 Token ungültig, 403 fremder Account |
 
