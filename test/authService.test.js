@@ -38,6 +38,7 @@ test("login mit falschem Passwort wirft 401", async () => {
   await assert.rejects(() => service.login({ email: "a@b.de", password: "falsch" }), status(401));
 });
 
+// KI-Log A41
 test("login mit richtigen Daten gibt Token, userId und Rolle zurück und speichert nur den Hash", async () => {
   const { service, gespeichert } = bauen({ user: { id: 1, passwort_hash: "geheim123", rolle: "Nutzer" } });
   const result = await service.login({ email: "A@B.de", password: "geheim123" });
@@ -45,6 +46,7 @@ test("login mit richtigen Daten gibt Token, userId und Rolle zurück und speiche
   assert.deepStrictEqual(gespeichert, [[1, "tokhash"]]);
 });
 
+// KI-Log A41
 test("login eines Moderators gibt die Rolle Moderator zurück", async () => {
   const { service } = bauen({ user: { id: 7, passwort_hash: "geheim123", rolle: "Moderator" } });
   const result = await service.login({ email: "m@b.de", password: "geheim123" });

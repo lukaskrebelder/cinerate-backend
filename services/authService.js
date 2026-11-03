@@ -13,7 +13,8 @@ function createAuthService(
   createToken = defaultCreateToken,
   hashToken = defaultHashToken
 ) {
-    // Anmeldung: prüft die Zugangsdaten und gibt Token, userId und Rolle zurück.
+  // KI-Log A41
+  // Anmeldung: prüft die Zugangsdaten und gibt Token, userId und Rolle zurück.
   async function login(data) {
     const body = data || {};
         if (!isNonEmptyText(body.email) || !isNonEmptyText(body.password)) {

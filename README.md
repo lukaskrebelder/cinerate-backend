@@ -49,6 +49,26 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
 - Beim Löschen eines Accounts werden alle zugehörigen Daten mitgelöscht
   (`ON DELETE CASCADE` im Schema).
 
+<!-- KI-Log A41 -->
+## Moderator anlegen
+
+Neue Nutzer bekommen die Rolle `Nutzer`. Es gibt keine Route, um Rollen zu ändern. Für die Demo wird ein Moderator per SQL gesetzt. Ein Moderator darf fremde Kommentare löschen, aber nicht bearbeiten. Die Rolle wird bei jeder Anfrage aus der Datenbank gelesen, ein neuer Login ist nach der Änderung nicht nötig. `POST /api/auth` liefert sie zusätzlich als `rolle` zurück, damit die SPA den Löschen-Knopf anzeigen kann.
+
+Mit `psql`:
+
+```
+heroku pg:psql -a cinerate-backend -c "UPDATE Nutzer SET rolle = 'Moderator' WHERE email = 'moderator@cinerate.test'"
+```
+
+Ohne `psql` (PowerShell, im Ordner `cinerate-backend`):
+
+```
+$env:DATABASE_URL = (heroku config:get DATABASE_URL -a cinerate-backend)
+node -e "require('./db/connection').query('UPDATE Nutzer SET rolle=`$1 WHERE email=`$2',[process.argv[1],process.argv[2]]).then(r=>{console.log(r.rowCount);process.exit()})" Moderator moderator@cinerate.test
+```
+
+Erwartet wird `UPDATE 1` bzw. `1`. Die `DATABASE_URL` enthält das Passwort der Datenbank und darf nicht weitergegeben werden.  
+
 ## Tests
 
 ```

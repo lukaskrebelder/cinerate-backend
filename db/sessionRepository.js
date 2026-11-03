@@ -3,6 +3,7 @@
 const defaultPool = require("./connection");
 
 function createSessionRepository(pool = defaultPool) {
+  // KI-Log A41
   // Nutzer für die Anmeldung per E-Mail suchen (undefined, wenn es ihn nicht gibt).
   async function findUserByEmail(email) {
     const result = await pool.query(
