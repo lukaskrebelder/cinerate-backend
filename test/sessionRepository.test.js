@@ -3,12 +3,14 @@ const test = require("node:test");
 const assert = require("node:assert");
 const { createSessionRepository } = require("../db/sessionRepository");
 
+// KI-Log A41
 test("findUserByEmail gibt die erste Zeile zurück", async () => {
   const pool = { query: async () => ({ rows: [{ id: 3, passwort_hash: "h", rolle: "Nutzer" }] }) };
   const user = await createSessionRepository(pool).findUserByEmail("a@b.de");
   assert.deepStrictEqual(user, { id: 3, passwort_hash: "h", rolle: "Nutzer" });
 });
 
+// KI-Log A41
 test("findUserByEmail fragt die Rolle mit ab", async () => {
   let sql;
   const pool = { query: async (text) => { sql = text; return { rows: [] }; } };
