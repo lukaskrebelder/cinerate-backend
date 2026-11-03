@@ -1,10 +1,6 @@
 # Automatische Tests für das Backend mit GitHub Actions
 # GitHub führt diese Schritte in der Cloud aus und zeigt an, ob alle Tests bestanden haben
-<<<<<<< Updated upstream
 # KI-Log A13
-=======
-# KI-Log Nr. 13
->>>>>>> Stashed changes
 
 name: Backend tests
 
