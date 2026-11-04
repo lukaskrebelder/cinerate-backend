@@ -108,7 +108,7 @@ Der Cache (`integrations/cachedTmdbClient.js`) hält Antworten von TMDB im Arbei
 
 **Ergebnis:** Aus dem Cache kommt die Antwort ohne messbare Wartezeit (unter 0,1 ms), ein TMDB-Aufruf dauert dagegen etwa 205 bis 430 ms (Suche) und 25 bis 130 ms (Filmdetail). Der erste Aufruf von Lauf 1 ist am langsamsten, weil dort die Verbindung zu TMDB erst aufgebaut wird. Der Zähler passt zum Ablauf: Pro Lauf 2 Fehlversuche (die beiden ersten Aufrufe) und 3 Treffer.
 
-**Grenzen:** Die Messung läuft lokal und nicht auf Heroku. Die Zeiten hängen von Netz und TMDB ab. Der Cache liegt im Speicher einer Instanz und geht beim Neustart verloren (siehe ADR-06).
+**Grenzen:** Die Messung läuft lokal und nicht auf Heroku. Die Zeiten hängen von Netz und TMDB ab. Der Cache liegt im Speicher einer Instanz und geht beim Neustart verloren (siehe ADR-03).
 
 ## Tech-Stack
 
