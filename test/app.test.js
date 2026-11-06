@@ -105,3 +105,10 @@ test("Fehler aus einer async-Route kommt als JSON mit dem Status des AppError an
     await new Promise((resolve) => miniServer.close(resolve));
   }
 });
+
+// KI-Log A43
+test("Antworten enthalten keinen X-Powered-By-Header", async () => {
+  const response = await fetch(baseUrl + "/api/gibt-es-nicht");
+  await response.text();
+  assert.strictEqual(response.headers.get("x-powered-by"), null);
+});

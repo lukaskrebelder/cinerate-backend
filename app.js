@@ -15,6 +15,10 @@ const recommendationsRoute = require("./routes/recommendations");
 
 const app = express();
 
+// KI-Log A43
+// Header "X-Powered-By: Express" weglassen, damit nicht jeder sieht, welches Framework läuft
+app.disable("x-powered-by");
+
 // Backend: REST-API gegen die Datenbank (Nutzer, Film, Bewertung).
 // Ruft bei Bedarf die TMDB-API auf (integrations/tmdbClient.js) und speichert die Filme.
 // CORS: nur das BFF darf dieses Backend aufrufen, nicht die SPA direkt.
