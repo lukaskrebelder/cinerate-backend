@@ -18,7 +18,7 @@ function createWatchlistRepository(pool = defaultPool) {
       if (err.code === "23505") {
         throw new AppError(409, "Movie is already on your watchlist.");
       }
-      throw err; // alles andere behandelt handleError als 503
+      throw err; // alles andere behandelt handleError (500, bei DB-Ausfall 503)
     }
   }
 

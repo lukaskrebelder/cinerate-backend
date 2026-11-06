@@ -50,7 +50,7 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
   (`ON DELETE CASCADE` im Schema).
 
 <!-- KI-Log A41 -->
-<!-- KI-Log A42 -->
+<!-- KI-Log A42, A43 -->
 ## Fehlerantworten
 
 Jede Fehlerantwort ist JSON im Format `{ "message": "…" }`, nie eine HTML-Seite.
@@ -61,6 +61,12 @@ Das gilt auch für Fehler, die vor den Routen entstehen:
 | Request-Body ist kein gültiges JSON | 400 | `Request body is not valid JSON.` |
 | Request-Body größer als 100 KB | 413 | Meldung von `express.json()` |
 | Unbekannte Route oder Methode | 404 | `Route not found.` |
+| Datenbank nicht erreichbar | 503 | `Database is not reachable.` |
+| Unerwarteter Fehler (z. B. Programmierfehler) | 500 | `Internal server error.` |
+
+Ob ein unerwarteter Fehler 503 oder 500 wird, entscheidet `isDatabaseUnavailable`
+anhand des Fehlercodes (Netzwerkfehler und Postgres-Verbindungsfehler ergeben 503).
+Die Details landen nur im Log (`console.error`), nie in der Antwort.
 
 Zuständig sind `notFoundMiddleware` und `errorMiddleware` in `lib/appError.js`,
 eingebunden am Ende von `app.js`. `server.js` startet nur die App.

@@ -1,7 +1,7 @@
 // KI-Log A15
 const test = require("node:test");
 const assert = require("node:assert");
-const { AppError, handleError } = require("../lib/appError");
+const { AppError, handleError, isDatabaseUnavailable } = require("../lib/appError");
 
 // Minimale Attrappe für res, die Status und Body merkt
 function fakeRes() {
@@ -26,14 +26,54 @@ test("handleError antwortet bei AppError mit dessen Status", () => {
   assert.deepStrictEqual(res.body, { message: "Bad input." });
 });
 
-test("handleError antwortet bei unbekanntem Fehler mit 503", () => {
+// KI-Log A43
+// Ruft handleError auf, ohne dass console.error die Testausgabe füllt
+function handleQuietly(err) {
   const res = fakeRes();
   const original = console.error;
-  console.error = () => {}; // Ausgabe im Test unterdrücken
-  handleError(new Error("boom"), res);
-  console.error = original;
-  assert.strictEqual(res.statusCode, 503);
-  assert.deepStrictEqual(res.body, { message: "Database is not reachable." });
+  console.error = () => {};
+  try {
+    handleError(err, res);
+  } finally {
+    console.error = original;
+  }
+  return res;
+}
+
+const withCode = (code, message = "db error") => Object.assign(new Error(message), { code });
+
+test("handleError antwortet bei einem Programmierfehler mit 500", () => {
+  const res = handleQuietly(new TypeError("Cannot read properties of undefined"));
+  assert.strictEqual(res.statusCode, 500);
+  assert.deepStrictEqual(res.body, { message: "Internal server error." });
+});
+
+test("handleError antwortet bei einem SQL-Fehler, der kein Verbindungsfehler ist, mit 500", () => {
+  // 42P01 = Tabelle gibt es nicht: die Datenbank läuft, der Fehler liegt im Code oder Schema
+  assert.strictEqual(handleQuietly(withCode("42P01")).statusCode, 500);
+});
+
+test("handleError antwortet mit 503, wenn die Datenbank nicht erreichbar ist", () => {
+  const faelle = [
+    withCode("ECONNREFUSED"),
+    withCode("ENOTFOUND"),
+    withCode("ETIMEDOUT"),
+    withCode("08006"), // Verbindung abgebrochen
+    withCode("57P01"), // Server wird heruntergefahren
+    withCode("53300"), // zu viele Verbindungen
+    new Error("Connection terminated unexpectedly"),
+  ];
+  for (const err of faelle) {
+    const res = handleQuietly(err);
+    assert.strictEqual(res.statusCode, 503, `${err.code ?? err.message}`);
+    assert.deepStrictEqual(res.body, { message: "Database is not reachable." });
+  }
+});
+
+test("isDatabaseUnavailable ist bei Werten ohne code und message false", () => {
+  assert.strictEqual(isDatabaseUnavailable(undefined), false);
+  assert.strictEqual(isDatabaseUnavailable({}), false);
+  assert.strictEqual(isDatabaseUnavailable(withCode(42)), false);
 });
 
 // KI-Log A42
@@ -58,13 +98,13 @@ test("errorMiddleware antwortet bei ungültigem JSON mit 400", () => {
   assert.deepStrictEqual(res.body, { message: "Request body is not valid JSON." });
 });
 
-test("errorMiddleware gibt bei unbekanntem Fehler an handleError weiter (503)", () => {
+test("errorMiddleware gibt bei unbekanntem Fehler an handleError weiter (500)", () => {
   const res = fakeRes();
   const original = console.error;
   console.error = () => {};
   errorMiddleware(new Error("boom"), {}, res, () => {});
   console.error = original;
-  assert.strictEqual(res.statusCode, 503);
+  assert.strictEqual(res.statusCode, 500);
 });
 
 test("errorMiddleware übergibt an Express, wenn die Antwort schon gesendet wird", () => {

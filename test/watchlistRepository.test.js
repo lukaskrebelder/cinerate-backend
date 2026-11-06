@@ -32,7 +32,7 @@ test("addMovie übersetzt den Fehler 23505 (schon auf der Watchlist) in 409", as
   );
 });
 
-test("addMovie gibt andere Fehler unverändert weiter (werden zu 503)", async () => {
+test("addMovie gibt andere Fehler unverändert weiter (handleError macht daraus 500 oder 503)", async () => {
   const boom = new Error("boom");
   const pool = fakePool({ error: boom });
   await assert.rejects(createWatchlistRepository(pool).addMovie({ userId: 7, tmdbId: 1 }), (err) => err === boom);

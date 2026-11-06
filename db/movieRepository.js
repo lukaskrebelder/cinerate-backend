@@ -57,7 +57,7 @@ function createMovieRepository(pool = defaultPool) {
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");
-      throw err; // alles Unerwartete behandelt handleError als 503
+      throw err; // alles Unerwartete behandelt handleError (500, bei DB-Ausfall 503)
     } finally {
       client.release();
     }
