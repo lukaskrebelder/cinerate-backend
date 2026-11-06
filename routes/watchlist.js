@@ -4,41 +4,28 @@
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
-const { handleError } = require("../lib/appError");
 const { watchlistService } = require("../services/container");
 
 // Film hinzufügen: Body { "movieId": 157336 }
 router.post("/watchlist", requireAuth, async (req, res) => {
-  try {
-    const { movieId } = req.body ?? {};
-    const result = await watchlistService.addMovie({ userId: req.user.id, movieId });
-    res.status(201).json(result);
-  } catch (err) {
-    handleError(err, res);
-  }
+  const { movieId } = req.body ?? {};
+  const result = await watchlistService.addMovie({ userId: req.user.id, movieId });
+  res.status(201).json(result);
 });
 
 // Film entfernen
 router.delete("/watchlist/:movieId", requireAuth, async (req, res) => {
-  try {
-    const result = await watchlistService.removeMovie({
-      userId: req.user.id,
-      movieId: req.params.movieId,
-    });
-    res.status(200).json(result);
-  } catch (err) {
-    handleError(err, res);
-  }
+  const result = await watchlistService.removeMovie({
+    userId: req.user.id,
+    movieId: req.params.movieId,
+  });
+  res.status(200).json(result);
 });
 
 // Eigene Watchlist, die zuletzt hinzugefügten Filme zuerst
 router.get("/watchlist", requireAuth, async (req, res) => {
-  try {
-    const result = await watchlistService.listMovies({ userId: req.user.id });
-    res.status(200).json(result);
-  } catch (err) {
-    handleError(err, res);
-  }
+  const result = await watchlistService.listMovies({ userId: req.user.id });
+  res.status(200).json(result);
 });
 
 module.exports = router;

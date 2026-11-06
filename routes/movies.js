@@ -4,30 +4,21 @@
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/requireAuth");
-const { handleError } = require("../lib/appError");
 
 const { movieService } = require("../services/container");
 
 // KI-Log A17
 router.get("/movies", requireAuth, async (req, res) => {
-  try {
-    const { query, genre, page } = req.query;
-    const result = await movieService.searchMovies({ query, genre, page });
-    res.status(200).json(result);
-  } catch (err) {
-    handleError(err, res);
-  }
+  const { query, genre, page } = req.query;
+  const result = await movieService.searchMovies({ query, genre, page });
+  res.status(200).json(result);
 });
 
 // KI-Log A21
 // Detailseite: movieId ist die TMDB-ID
 router.get("/movies/:movieId", requireAuth, async (req, res) => {
-  try {
-    const result = await movieService.getMovie(req.params.movieId);
-    res.status(200).json(result);
-  } catch (err) {
-    handleError(err, res);
-  }
+  const result = await movieService.getMovie(req.params.movieId);
+  res.status(200).json(result);
 });
 
 module.exports = router;

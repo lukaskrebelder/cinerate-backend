@@ -81,3 +81,27 @@ test("geschützte Route ohne Token ergibt weiterhin 401 als JSON", async () => {
   assert.strictEqual(res.status, 401);
   assert.deepStrictEqual(res.body, { message: "Invalid token." });
 });
+
+// Die Routen haben kein eigenes try/catch mehr. Dieser Test sichert ab, dass Express 5
+// einen Fehler aus einer async-Route wirklich an errorMiddleware weitergibt.
+test("Fehler aus einer async-Route kommt als JSON mit dem Status des AppError an", async () => {
+  const express = require("express");
+  const { AppError, errorMiddleware } = require("../lib/appError");
+  const mini = express();
+  mini.get("/fehler", async () => {
+    throw new AppError(404, "No movie found for this ID.");
+  });
+  mini.use(errorMiddleware);
+
+  const miniServer = await new Promise((resolve) => {
+    const s = mini.listen(0, () => resolve(s));
+  });
+  try {
+    const response = await fetch(`http://127.0.0.1:${miniServer.address().port}/fehler`);
+    assert.strictEqual(response.status, 404);
+    assert.deepStrictEqual(await response.json(), { message: "No movie found for this ID." });
+  } finally {
+    miniServer.closeAllConnections();
+    await new Promise((resolve) => miniServer.close(resolve));
+  }
+});
