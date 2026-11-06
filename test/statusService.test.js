@@ -12,7 +12,7 @@ test("getStatus liefert Status, Nachricht und Filmanzahl wie bisher", async () =
   });
 });
 
-test("getStatus reicht einen Datenbankfehler weiter (die Route macht daraus 503)", async () => {
+test("getStatus reicht einen Datenbankfehler weiter (handleError macht daraus 503)", async () => {
   const service = createStatusService({
     countMovies: async () => {
       throw new Error("connection lost");

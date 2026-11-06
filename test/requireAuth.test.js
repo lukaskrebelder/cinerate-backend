@@ -47,9 +47,24 @@ test("mit gültigem Token setzt es req.user mit Rolle und ruft next auf", async 
   assert.strictEqual(weiter, true);
 });
 
-test("bei Datenbankfehler gibt es 503", async () => {
-  const kaputt = { authenticate: async () => { throw new Error("connection lost"); } };
+// KI-Log A43
+test("ist die Datenbank nicht erreichbar, gibt es 503", async () => {
+  const dbWeg = Object.assign(new Error("connect ECONNREFUSED 127.0.0.1:5432"), { code: "ECONNREFUSED" });
+  const kaputt = { authenticate: async () => { throw dbWeg; } };
   const res = antwort();
+  const original = console.error;
+  console.error = () => {};
   await createRequireAuth(kaputt)({ headers: { authorization: "Bearer gut" } }, res, () => {});
+  console.error = original;
   assert.strictEqual(res.statusCode, 503);
+});
+
+test("bei einem unerwarteten Fehler gibt es 500", async () => {
+  const kaputt = { authenticate: async () => { throw new TypeError("x is undefined"); } };
+  const res = antwort();
+  const original = console.error;
+  console.error = () => {};
+  await createRequireAuth(kaputt)({ headers: { authorization: "Bearer gut" } }, res, () => {});
+  console.error = original;
+  assert.strictEqual(res.statusCode, 500);
 });

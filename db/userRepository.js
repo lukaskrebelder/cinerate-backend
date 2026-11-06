@@ -18,7 +18,7 @@ function createUserRepository(pool = defaultPool) {
       if (err.code === "23505") {
         throw new AppError(409, "An account with this email already exists.");
       }
-      throw err; // alles andere behandelt handleError als 503
+      throw err; // alles andere behandelt handleError (500, bei DB-Ausfall 503)
     }
   }
 
