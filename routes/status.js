@@ -3,15 +3,10 @@
 // KI-Log A27
 const express = require("express");
 const router = express.Router();
-const { handleError } = require("../lib/appError");
 const { statusService } = require("../services/container");
 
 router.get("/status", async (req, res) => {
-  try {
-    res.json(await statusService.getStatus());
-  } catch (err) {
-    handleError(err, res);
-  }
+  res.json(await statusService.getStatus());
 });
 
 module.exports = router;

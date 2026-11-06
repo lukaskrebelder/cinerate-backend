@@ -50,6 +50,21 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
   (`ON DELETE CASCADE` im Schema).
 
 <!-- KI-Log A41 -->
+<!-- KI-Log A42 -->
+## Fehlerantworten
+
+Jede Fehlerantwort ist JSON im Format `{ "message": "…" }`, nie eine HTML-Seite.
+Das gilt auch für Fehler, die vor den Routen entstehen:
+
+| Fall | Status | `message` |
+|---|---|---|
+| Request-Body ist kein gültiges JSON | 400 | `Request body is not valid JSON.` |
+| Request-Body größer als 100 KB | 413 | Meldung von `express.json()` |
+| Unbekannte Route oder Methode | 404 | `Route not found.` |
+
+Zuständig sind `notFoundMiddleware` und `errorMiddleware` in `lib/appError.js`,
+eingebunden am Ende von `app.js`. `server.js` startet nur die App.
+
 ## Moderator anlegen
 
 Neue Nutzer bekommen die Rolle `Nutzer`. Es gibt keine Route, um Rollen zu ändern. Für die Demo wird ein Moderator per SQL gesetzt. Ein Moderator darf fremde Kommentare löschen, aber nicht bearbeiten. Die Rolle wird bei jeder Anfrage aus der Datenbank gelesen, ein neuer Login ist nach der Änderung nicht nötig. `POST /api/auth` liefert sie zusätzlich als `rolle` zurück, damit die SPA den Löschen-Knopf anzeigen kann.
