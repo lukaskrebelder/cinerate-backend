@@ -17,7 +17,7 @@ function createAuthService(
   // Anmeldung: prüft die Zugangsdaten und gibt Token, userId und Rolle zurück.
   async function login(data) {
     const body = data || {};
-        if (!isNonEmptyText(body.email) || !isNonEmptyText(body.password)) {
+    if (!isNonEmptyText(body.email) || !isNonEmptyText(body.password)) {
       throw new AppError(400, "Email and password are required.");
     }
 
@@ -29,10 +29,14 @@ function createAuthService(
       throw new AppError(401, "Email or password is incorrect.");
     }
 
+    // KI-Log A46
+    // Abgelaufene Sitzungen aller Nutzer aufräumen, sonst wächst die Tabelle Sitzung unbegrenzt
+    await sessionRepository.deleteExpiredSessions();
+
     // Token geht an den Nutzer, nur der Hash wird gespeichert
     const { token, tokenHash } = createToken();
     await sessionRepository.createSession(user.id, tokenHash);
-        return { token, userId: "u_" + user.id, rolle: user.rolle };
+    return { token, userId: "u_" + user.id, rolle: user.rolle };
   }
 
   // Token prüfen: gibt den angemeldeten Nutzer zurück oder wirft 401.

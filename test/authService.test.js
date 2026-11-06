@@ -8,16 +8,18 @@ const { AppError } = require("../lib/appError");
 function bauen({ user, session } = {}) {
   const gespeichert = [];
   const geloescht = [];
+  const aufgeraeumt = [];
   const repo = {
     findUserByEmail: async () => user,
     createSession: async (id, hash) => { gespeichert.push([id, hash]); },
     findValidSession: async () => session,
+    deleteExpiredSessions: async () => { aufgeraeumt.push(true); return 0; },
     deleteSession: async (id) => { geloescht.push(id); },
   };
   const verify = async (pw, hash) => pw === hash;
   const create = () => ({ token: "tok", tokenHash: "tokhash" });
   const hash = (t) => "h_" + t;
-  return { service: createAuthService(repo, verify, create, hash), gespeichert, geloescht };
+  return { service: createAuthService(repo, verify, create, hash), gespeichert, geloescht, aufgeraeumt };
 }
 
 const status = (code) => (err) => err instanceof AppError && err.status === code;
@@ -67,4 +69,13 @@ test("logout löscht die Sitzung", async () => {
   const { service, geloescht } = bauen();
   await service.logout(9);
   assert.deepStrictEqual(geloescht, [9]);
+});
+
+// KI-Log A46
+test("login räumt abgelaufene Sitzungen nur bei erfolgreicher Anmeldung auf", async () => {
+  const { service, aufgeraeumt } = bauen({ user: { id: 1, passwort_hash: "geheim123", rolle: "Nutzer" } });
+  await assert.rejects(() => service.login({ email: "a@b.de", password: "falsch" }), status(401));
+  assert.strictEqual(aufgeraeumt.length, 0);
+  await service.login({ email: "a@b.de", password: "geheim123" });
+  assert.strictEqual(aufgeraeumt.length, 1);
 });

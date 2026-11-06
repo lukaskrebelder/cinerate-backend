@@ -47,3 +47,10 @@ test("deleteSession löscht mit der übergebenen ID", async () => {
   await createSessionRepository(pool).deleteSession(9);
   assert.deepStrictEqual(gesehen, [9]);
 });
+// KI-Log A46
+test("deleteExpiredSessions löscht abgelaufene Sitzungen und gibt die Anzahl zurück", async () => {
+  let sql;
+  const pool = { query: async (text) => { sql = text; return { rowCount: 3 }; } };
+  assert.strictEqual(await createSessionRepository(pool).deleteExpiredSessions(), 3);
+  assert.match(sql, /DELETE FROM Sitzung WHERE laeuft_ab_am <= NOW\(\)/);
+});

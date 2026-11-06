@@ -46,6 +46,8 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
 - Beim Login entsteht ein zufälliges Token (64 Hex-Zeichen). In der Tabelle
   `Sitzung` steht nur dessen SHA-256-Hash (`lib/tokens.js`).
 - Ein Token gilt 24 Stunden. Die Prüfung übernimmt `middleware/requireAuth.js`.
+- Bei jeder erfolgreichen Anmeldung werden abgelaufene Sitzungen aus der Tabelle
+  `Sitzung` gelöscht. <!-- KI-Log A46 -->
 - Beim Löschen eines Accounts werden alle zugehörigen Daten mitgelöscht
   (`ON DELETE CASCADE` im Schema).
 
