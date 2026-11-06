@@ -14,4 +14,13 @@ const pool = new Pool({
   ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
+// KI-Log A44
+// Bricht eine gerade unbenutzte Verbindung ab (z. B. bei einer Wartung oder einem Neustart von
+// Heroku Postgres), meldet pg das als "error"-Event am Pool. Ohne Listener beendet Node dann den
+// ganzen Prozess. Mit Listener wird der Fehler nur geloggt; der Pool verwirft die kaputte
+// Verbindung und baut bei der nächsten Anfrage selbst eine neue auf.
+pool.on("error", (err) => {
+  console.error("Postgres-Verbindung im Leerlauf abgebrochen:", err.message);
+});
+
 module.exports = pool;
