@@ -7,10 +7,10 @@ Engineering, WS 2026/27.
 ## Architektur
 
 Dieses Backend ist die einzige Komponente mit Datenbankzugriff. Es ruft bei
-Bedarf die **TMDB-API** auf (`lib/tmdbClient.js`), speichert die geholten Filme
-in der Datenbank und antwortet. Das BFF ([cinerate-bff](../cinerate-bff)) reicht
-Anfragen nur durch. Nur das BFF darf dieses Backend aufrufen (CORS beschränkt auf
-`BFF_URL`), nicht die SPA direkt.
+Bedarf die **TMDB-API** auf (`integrations/tmdbClient.js`), speichert die geholten
+Filme in der Datenbank und antwortet. Das BFF ([cinerate-bff](../cinerate-bff)) reicht
+Anfragen nur durch. Nur das BFF darf dieses Backend aufrufen, nicht die SPA direkt
+(siehe [Zugriff nur über das BFF](#zugriff-nur-über-das-bff)).
 
 Das Datenbankschema selbst liegt in einem eigenen Repository:
 [cinerate-db](../cinerate-db).
@@ -49,7 +49,6 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
 - Beim Löschen eines Accounts werden alle zugehörigen Daten mitgelöscht
   (`ON DELETE CASCADE` im Schema).
 
-<!-- KI-Log A41 -->
 <!-- KI-Log A42, A43 -->
 ## Fehlerantworten
 
@@ -71,6 +70,7 @@ Die Details landen nur im Log (`console.error`), nie in der Antwort.
 Zuständig sind `notFoundMiddleware` und `errorMiddleware` in `lib/appError.js`,
 eingebunden am Ende von `app.js`. `server.js` startet nur die App.
 
+<!-- KI-Log A41 -->
 ## Moderator anlegen
 
 Neue Nutzer bekommen die Rolle `Nutzer`. Es gibt keine Route, um Rollen zu ändern. Für die Demo wird ein Moderator per SQL gesetzt. Ein Moderator darf fremde Kommentare löschen, aber nicht bearbeiten. Die Rolle wird bei jeder Anfrage aus der Datenbank gelesen, ein neuer Login ist nach der Änderung nicht nötig. `POST /api/auth` liefert sie zusätzlich als `rolle` zurück, damit die SPA den Löschen-Knopf anzeigen kann.
@@ -90,6 +90,35 @@ node -e "require('./db/connection').query('UPDATE Nutzer SET rolle=`$1 WHERE ema
 
 Erwartet wird `UPDATE 1` bzw. `1`. Die `DATABASE_URL` enthält das Passwort der Datenbank und darf nicht weitergegeben werden.  
 
+<!-- KI-Log A45 -->
+## Zugriff nur über das BFF
+
+BFF und Backend teilen sich einen geheimen Schlüssel in der Config Var
+`INTERNAL_API_KEY`. Das BFF schickt ihn bei jeder Anfrage im Header
+`X-Internal-Key` mit (`middleware/requireInternalKey.js`).
+
+| Fall | Antwort |
+|---|---|
+| Header fehlt oder ist falsch | 403 `Access is only allowed via the BFF.` |
+| `GET /api/status` | immer erreichbar, ohne Schlüssel |
+| `INTERNAL_API_KEY` nicht gesetzt (lokal) | keine Prüfung, Warnung beim Start |
+
+CORS gibt es im Backend nicht mehr: CORS gilt nur für Browser und hätte das BFF,
+das von Server zu Server aufruft, ohnehin nicht eingeschränkt.
+
+Schlüssel erzeugen und auf **beiden** Apps denselben Wert setzen. Reihenfolge:
+erst das BFF deployen, das den Header mitschickt, dann den Schlüssel auf dem Backend
+setzen; sonst lehnt das Backend das BFF ab.
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+heroku config:set INTERNAL_API_KEY=<Schlüssel> -a cinerate-bff
+heroku config:set INTERNAL_API_KEY=<Schlüssel> -a cinerate-backend
+```
+
+Für Tests mit Postman oder curl gegen Heroku den Header `X-Internal-Key` mitschicken.
+Der Schlüssel gehört weder in Git noch in Chats.
+
 ## Tests
 
 ```
@@ -105,7 +134,7 @@ Testabdeckung messen: `node --test --experimental-test-coverage`
 ```
 heroku create cinerate-backend
 heroku addons:create heroku-postgresql:essential-0
-heroku config:set BFF_URL=https://cinerate-bff.herokuapp.com TMDB_API_KEY=...
+heroku config:set TMDB_API_KEY=...   # INTERNAL_API_KEY: siehe "Zugriff nur über das BFF"
 git push heroku main
 ```
 

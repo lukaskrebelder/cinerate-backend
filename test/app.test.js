@@ -112,3 +112,56 @@ test("Antworten enthalten keinen X-Powered-By-Header", async () => {
   await response.text();
   assert.strictEqual(response.headers.get("x-powered-by"), null);
 });
+
+// KI-Log A45
+// App mit eingeschaltetem Schlüssel (wie auf Heroku, wenn INTERNAL_API_KEY gesetzt ist)
+test("mit INTERNAL_API_KEY: ohne Header 403, mit Header normale Antwort, Status frei", async () => {
+  const { createApp } = require("../app");
+  const keyServer = await new Promise((resolve) => {
+    const s = createApp({ internalKey: "geheim-123" }).listen(0, () => resolve(s));
+  });
+  const url = `http://127.0.0.1:${keyServer.address().port}`;
+  const json = { "Content-Type": "application/json" };
+  try {
+    const ohne = await fetch(url + "/api/gibt-es-nicht");
+    assert.strictEqual(ohne.status, 403);
+    assert.deepStrictEqual(await ohne.json(), { message: "Access is only allowed via the BFF." });
+
+    // Geprüft wird vor dem Lesen des Bodys: ohne Schlüssel auch bei kaputtem JSON 403
+    const kaputtOhne = await fetch(url + "/api/users", { method: "POST", headers: json, body: "{x" });
+    assert.strictEqual(kaputtOhne.status, 403);
+    await kaputtOhne.text();
+
+    const mit = await fetch(url + "/api/gibt-es-nicht", { headers: { "X-Internal-Key": "geheim-123" } });
+    assert.strictEqual(mit.status, 404);
+    await mit.text();
+
+    const kaputtMit = await fetch(url + "/api/users", {
+      method: "POST",
+      headers: { ...json, "X-Internal-Key": "geheim-123" },
+      body: "{x",
+    });
+    assert.strictEqual(kaputtMit.status, 400);
+    await kaputtMit.text();
+
+    // Der Status braucht keinen Schlüssel. Ohne erreichbare Datenbank kommt 503, aber nie 403.
+    const original = console.error;
+    console.error = () => {};
+    try {
+      const status = await fetch(url + "/api/status");
+      assert.notStrictEqual(status.status, 403);
+      await status.text();
+    } finally {
+      console.error = original;
+    }
+  } finally {
+    keyServer.closeAllConnections();
+    await new Promise((resolve) => keyServer.close(resolve));
+  }
+});
+
+test("Antworten enthalten keine CORS-Header mehr", async () => {
+  const response = await fetch(baseUrl + "/api/gibt-es-nicht", { headers: { Origin: "https://example.org" } });
+  await response.text();
+  assert.strictEqual(response.headers.get("access-control-allow-origin"), null);
+});
