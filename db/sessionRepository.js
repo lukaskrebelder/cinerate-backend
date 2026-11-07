@@ -32,11 +32,19 @@ function createSessionRepository(pool = defaultPool) {
     return result.rows[0];
   }
 
+  // KI-Log A46
+  // Löscht alle abgelaufenen Sitzungen (nutzt den Index idx_sitzung_laeuft_ab) und gibt ihre Anzahl zurück.
+  // "<=" passt zu findValidSession, die nur Sitzungen mit laeuft_ab_am > NOW() als gültig ansieht.
+  async function deleteExpiredSessions() {
+    const result = await pool.query("DELETE FROM Sitzung WHERE laeuft_ab_am <= NOW()");
+    return result.rowCount;
+  }
+
   async function deleteSession(sessionId) {
     await pool.query("DELETE FROM Sitzung WHERE id = $1", [sessionId]);
   }
 
-  return { findUserByEmail, createSession, findValidSession, deleteSession };
+  return { findUserByEmail, createSession, findValidSession, deleteExpiredSessions, deleteSession };
 }
 
 module.exports = { createSessionRepository };

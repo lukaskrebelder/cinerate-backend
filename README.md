@@ -33,7 +33,7 @@ Alle Pfade haben das Präfix `/api`. Geschützte Endpunkte erwarten den Header
 | Methode | Pfad | Geschützt | Erfolg | Fehler |
 |---|---|---|---|---|
 | POST | `/api/users` | nein | 201 `{ message, userId }` | 400 ungültige Daten, 409 E-Mail existiert schon, 503 DB nicht erreichbar |
-| POST | `/api/auth` | nein | 200 `{ token, userId, rolle }` | 400 Daten fehlen, 401 E-Mail oder Passwort falsch, 503 |
+| POST | `/api/auth` | nein | 200 `{ token, userId, rolle }` | 400 Daten fehlen, 401 E-Mail oder Passwort falsch, 429 zu viele Fehlversuche, 503 |
 | DELETE | `/api/auth` | ja | 200 `{ message }` | 401 Token ungültig oder abgelaufen |
 | DELETE | `/api/users/{userId}` | ja | 200 `{ message }` | 401 Token ungültig, 403 fremder Account |
 
@@ -46,6 +46,14 @@ Request-Body von `POST /api/users`: `firstName`, `lastName`, `email`, `password`
 - Beim Login entsteht ein zufälliges Token (64 Hex-Zeichen). In der Tabelle
   `Sitzung` steht nur dessen SHA-256-Hash (`lib/tokens.js`).
 - Ein Token gilt 24 Stunden. Die Prüfung übernimmt `middleware/requireAuth.js`.
+- Nach 5 fehlgeschlagenen Anmeldungen mit derselben E-Mail ist die Anmeldung für
+  15 Minuten gesperrt (429 `Too many failed login attempts. Please try again later.`),
+  auch mit richtigem Passwort. Gezählt wird pro E-Mail, nicht pro IP, weil alle
+  Anfragen über das BFF kommen. Eine erfolgreiche Anmeldung setzt den Zähler zurück.
+  Der Zähler liegt im Arbeitsspeicher (`lib/attemptLimiter.js`) und beginnt nach
+  einem Neustart bei 0. <!-- KI-Log A46 -->
+- Bei jeder erfolgreichen Anmeldung werden abgelaufene Sitzungen aus der Tabelle
+  `Sitzung` gelöscht. <!-- KI-Log A46 -->
 - Beim Löschen eines Accounts werden alle zugehörigen Daten mitgelöscht
   (`ON DELETE CASCADE` im Schema).
 
